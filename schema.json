@@ -6,6 +6,7 @@
     "shopify:seans-store-takeshape": {
       "params": {
         "type": "graphql",
+        "namespace": "Shopify",
         "authHeader": "X-Shopify-Access-Token",
         "endpoint": "https://seans-store-takeshape.myshopify.com/admin/api/2020-07/graphql.json",
         "shop": "seans-store-takeshape"
@@ -16,7 +17,11 @@
   "version": 2,
   "queries": {
     "getProduct": {
-      "resolver": "graphql:query",
+      "resolver": {
+        "name": "graphql:query",
+        "service": "shopify:seans-store-takeshape",
+        "fieldName": "product"
+      },
       "args": {
         "type": "object",
         "properties": {
@@ -29,35 +34,64 @@
           "id"
         ]
       },
-      "source": "shopify:seans-store-takeshape:Product",
-      "type": "Product",
-      "query": "product"
+      "shape": "Shopify_Product"
     },
     "getPost": {
-      "type": "Post",
-      "resolver": "takeshape:get",
-      "source": "takeshape:self:Post"
-    },
-    "getTag": {
-      "type": "Tag",
-      "resolver": "takeshape:get",
-      "source": "takeshape:self:Tag"
-    },
-    "getTagList": {
-      "type": "PaginatedList<Tag>",
-      "resolver": "takeshape:list",
-      "source": "takeshape:self:Tag"
+      "shape": "Post",
+      "resolver": {
+        "name": "takeshape:get",
+        "service": "takeshape:local",
+        "options": {
+          "model": "Post"
+        }
+      },
+      "description": "Get a Post by ID",
+      "args": "TSGetArgs<Post>"
     },
     "getPostList": {
-      "type": "PaginatedList<Post>",
-      "resolver": "takeshape:list",
-      "source": "takeshape:self:Post"
+      "shape": "PaginatedList<Post>",
+      "resolver": {
+        "name": "takeshape:list",
+        "service": "takeshape:local",
+        "options": {
+          "model": "Post"
+        }
+      },
+      "description": "Returns a list Post in natural order.",
+      "args": "TSListArgs<Post>"
+    },
+    "getTag": {
+      "shape": "Tag",
+      "resolver": {
+        "name": "takeshape:get",
+        "service": "takeshape:local",
+        "options": {
+          "model": "Tag"
+        }
+      },
+      "description": "Get a Tag by ID",
+      "args": "TSGetArgs<Tag>"
+    },
+    "getTagList": {
+      "shape": "PaginatedList<Tag>",
+      "resolver": {
+        "name": "takeshape:list",
+        "service": "takeshape:local",
+        "options": {
+          "model": "Tag"
+        }
+      },
+      "description": "Returns a list Tag in natural order.",
+      "args": "TSListArgs<Tag>"
     },
     "getProductList": {
-      "resolver": "graphql:query",
       "args": {
         "type": "object",
         "properties": {
+          "first": {
+            "type": "integer",
+            "description": "Returns up to the first `n` elements from the list."
+          },
           "after": {
             "type": "string",
             "description": "Returns the elements that come after the specified cursor."
@@ -66,23 +100,45 @@
             "type": "integer",
             "description": "Returns up to the last `n` elements from the list."
           },
-          "reverse": {
-            "type": "boolean",
-            "description": "Reverse the order of the underlying list."
-          },
           "before": {
             "type": "string",
             "description": "Returns the elements that come before the specified cursor."
           },
-          "first": {
-            "type": "integer",
-            "description": "Returns up to the first `n` elements from the list."
+          "reverse": {
+            "type": "boolean",
+            "description": "Reverse the order of the underlying list."
+          },
+          "sortKey": {
+            "description": "Sort the underlying list by the given key.",
+            "enum": [
+              "TITLE",
+              "PRODUCT_TYPE",
+              "VENDOR",
+              "INVENTORY_TOTAL",
+              "UPDATED_AT",
+              "CREATED_AT",
+              "PUBLISHED_AT",
+              "ID",
+              "RELEVANCE"
+            ]
+          },
+          "query": {
+            "type": "string",
+            "description": "Supported filter parameters:\n - `barcode`\n - `created_at`\n - `delivery_profile_id`\n - `error_feedback`\n - `gift_card`\n - `inventory_total`\n - `is_price_reduced`\n - `out_of_stock_somewhere`\n - `price`\n - `product_type`\n - `publishable_status`\n - `published_status`\n - `sku`\n - `status`\n - `tag`\n - `title`\n - `updated_at`\n - `vendor`\n\nSee the detailed [search syntax](https://help.shopify.com/api/getting-started/search-syntax)\nfor more information about using filters."
+          },
+          "savedSearchId": {
+            "type": "string",
+            "@tag": "id",
+            "description": "ID of an existing saved search.\nThe search’s query string is used as the query argument."
           }
         }
       },
-      "source": "shopify:seans-store-takeshape:Product",
-      "type": "ProductConnection",
-      "query": "products"
+      "resolver": {
+        "name": "graphql:query",
+        "service": "shopify:seans-store-takeshape",
+        "fieldName": "products"
+      },
+      "shape": "Shopify_ProductConnection"
     }
   },
   "dataKey": "AQIDAHhcZWXOdlBglkxBhI23ElO/clC/kuw5ynjXDSqJgfTz8gFvrYhMK581OOYYSjJNwit9AAAAfjB8BgkqhkiG9w0BBwagbzBtAgEAMGgGCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQMPLnOWQxVHD5AzgXdAgEQgDu0ANKQTBQ7dNFJEQcd2aOfZncgw7DjUasC+7Yp2ci0Y2+ZmbbtIa2kcHBt8eriFPR28uwgnvDzn8t6Qw==",
@@ -92,52 +148,120 @@
   ],
   "apiVersion": "2",
   "mutations": {
-    "deletePost": {
-      "type": "boolean",
-      "resolver": "takeshape:delete",
-      "source": "takeshape:self:Post"
-    },
-    "updateTag": {
-      "type": "Tag",
-      "resolver": "takeshape:update",
-      "source": "takeshape:self:Tag"
-    },
-    "deleteTag": {
-      "type": "boolean",
-      "resolver": "takeshape:delete",
-      "source": "takeshape:self:Tag"
-    },
     "updatePost": {
-      "type": "Post",
-      "resolver": "takeshape:update",
-      "source": "takeshape:self:Post"
-    },
-    "createTag": {
-      "type": "Tag",
-      "resolver": "takeshape:create",
-      "source": "takeshape:self:Tag"
+      "shape": "UpdateResult<Post>",
+      "resolver": {
+        "name": "takeshape:update",
+        "service": "takeshape:local",
+        "options": {
+          "model": "Post"
+        }
+      },
+      "description": "Update Post",
+      "args": "UpdateArgs<Post>"
     },
     "createPost": {
-      "type": "Post",
-      "resolver": "takeshape:create",
-      "source": "takeshape:self:Post"
+      "shape": "CreateResult<Post>",
+      "resolver": {
+        "name": "takeshape:create",
+        "service": "takeshape:local",
+        "options": {
+          "model": "Post"
+        }
+      },
+      "description": "Create Post",
+      "args": "CreateArgs<Post>"
+    },
+    "duplicatePost": {
+      "shape": "DuplicateResult<Post>",
+      "resolver": {
+        "name": "takeshape:duplicate",
+        "service": "takeshape:local",
+        "options": {
+          "model": "Post"
+        }
+      },
+      "description": "Duplicate Post",
+      "args": "DuplicateArgs<Post>"
+    },
+    "deletePost": {
+      "shape": "DeleteResult<Post>",
+      "resolver": {
+        "name": "takeshape:delete",
+        "service": "takeshape:local",
+        "options": {
+          "model": "Post"
+        }
+      },
+      "description": "Delete Post",
+      "args": "DeleteArgs<Post>"
+    },
+    "updateTag": {
+      "shape": "UpdateResult<Tag>",
+      "resolver": {
+        "name": "takeshape:update",
+        "service": "takeshape:local",
+        "options": {
+          "model": "Tag"
+        }
+      },
+      "description": "Update Tag",
+      "args": "UpdateArgs<Tag>"
+    },
+    "createTag": {
+      "shape": "CreateResult<Tag>",
+      "resolver": {
+        "name": "takeshape:create",
+        "service": "takeshape:local",
+        "options": {
+          "model": "Tag"
+        }
+      },
+      "description": "Create Tag",
+      "args": "CreateArgs<Tag>"
+    },
+    "duplicateTag": {
+      "shape": "DuplicateResult<Tag>",
+      "resolver": {
+        "name": "takeshape:duplicate",
+        "service": "takeshape:local",
+        "options": {
+          "model": "Tag"
+        }
+      },
+      "description": "Duplicate Tag",
+      "args": "DuplicateArgs<Tag>"
+    },
+    "deleteTag": {
+      "shape": "DeleteResult<Tag>",
+      "resolver": {
+        "name": "takeshape:delete",
+        "service": "takeshape:local",
+        "options": {
+          "model": "Tag"
+        }
+      },
+      "description": "Delete Tag",
+      "args": "DeleteArgs<Tag>"
     },
     "createProduct": {
-      "resolver": "graphql:mutation",
+      "resolver": {
+        "name": "graphql:mutation",
+        "service": "shopify:seans-store-takeshape",
+        "fieldName": "productCreate"
+      },
       "args": {
         "type": "object",
         "properties": {
           "input": {
-            "$ref": "#/shapes/ProductInput/schema"
+            "$ref": "#/shapes/Shopify_ProductInput/schema"
           }
         },
         "required": [
           "input"
         ]
       },
-      "source": "shopify:seans-store-takeshape:Product",
-      "type": "ProductCreatePayload",
-      "query": "productCreate"
+      "shape": "Shopify_ProductCreatePayload"
     }
   },
   "shapes": {
@@ -146,28 +270,6 @@
       "schema": {
         "type": "object",
         "properties": {
-          "shopifyProduct": {
-            "$ref": "#/shapes/Product/schema",
-            "@resolver": {
-              "resolver": "graphql:query",
-              "args": {
-                "type": "object",
-                "properties": {
-                  "id": {
-                    "type": "string",
-                    "@tag": "id",
-                    "@mapping": "parent.productId"
-                  }
-                },
-                "required": [
-                  "id"
-                ]
-              },
-              "source": "shopify:seans-store-takeshape:Product",
-              "type": "Product",
-              "query": "product"
-            }
-          },
           "rating": {
             "type": "integer",
             "@mapping": "takeshape:local:Post.ratingId"
@@ -212,280 +314,6 @@
       "id": "postContentTypeId",
       "title": "Post"
     },
-    "SEO": {
-      "name": "SEO",
-      "title": "SEO",
-      "id": "seo",
-      "description": "SEO information.",
-      "schema": {
-        "type": "object",
-        "properties": {
-          "description": {
-            "type": "string",
-            "@mapping": "shopify:seans-store-takeshape:SEO.description",
-            "description": "SEO Description."
-          },
-          "title": {
-            "type": "string",
-            "@mapping": "shopify:seans-store-takeshape:SEO.title",
-            "description": "SEO Title."
-          }
-        }
-      }
-    },
-    "Product": {
-      "name": "Product",
-      "schema": {
-        "type": "object",
-        "properties": {
-          "images": {
-            "type": "array",
-            "items": {
-              "$ref": "#/shapes/Image/schema"
-            },
-            "@mapping": "shopify:seans-store-takeshape:Product.images"
-          },
-          "publishedAt": {
-            "type": "string",
-            "format": "date-time",
-            "@tag": "date",
-            "@mapping": "shopify:seans-store-takeshape:Product.publishedAt"
-          },
-          "templateSuffix": {
-            "type": "string",
-            "@mapping": "shopify:seans-store-takeshape:Product.templateSuffix"
-          },
-          "availablePublicationCount": {
-            "type": "integer",
-            "@mapping": "shopify:seans-store-takeshape:Product.availablePublicationCount"
-          },
-          "description": {
-            "type": "string",
-            "@mapping": "shopify:seans-store-takeshape:Product.description"
-          },
-          "handle": {
-            "type": "string",
-            "@mapping": "shopify:seans-store-takeshape:Product.handle"
-          },
-          "title": {
-            "type": "string",
-            "@tag": "title",
-            "@mapping": "shopify:seans-store-takeshape:Product.title"
-          },
-          "tags": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "@mapping": "shopify:seans-store-takeshape:Product.tags"
-          },
-          "createdAt": {
-            "description": "The date and time ([ISO 8601 format](http://en.wikipedia.org/wiki/ISO_8601)) when the product was created.",
-            "type": "string",
-            "format": "date-time",
-            "@mapping": "shopify:seans-store-takeshape:Product.createdAt"
-          },
-          "featuredImage": {
-            "$ref": "#/shapes/Image/schema",
-            "@mapping": "shopify:seans-store-takeshape:Product.featuredImage"
-          },
-          "vendor": {
-            "type": "string",
-            "@mapping": "shopify:seans-store-takeshape:Product.vendor"
-          },
-          "descriptionHtml": {
-            "type": "string",
-            "@tag": "html",
-            "@mapping": "shopify:seans-store-takeshape:Product.descriptionHtml"
-          },
-          "id": {
-            "type": "string",
-            "@tag": "id",
-            "@mapping": "shopify:seans-store-takeshape:Product.id"
-          },
-          "seo": {
-            "$ref": "#/shapes/SEO/schema",
-            "@mapping": "shopify:seans-store-takeshape:Product.seo",
-            "description": "SEO information of the product."
-          },
-          "productType": {
-            "type": "string",
-            "@mapping": "shopify:seans-store-takeshape:Product.productType"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time",
-            "description": "The date and time ([ISO 8601 format](http://en.wikipedia.org/wiki/ISO_8601)) when the product was last modified.",
-            "@mapping": "shopify:seans-store-takeshape:Product.updatedAt"
-          }
-        }
-      },
-      "id": "shopifyProduct",
-      "title": "Product"
-    },
-    "Image": {
-      "name": "Image",
-      "schema": {
-        "type": "object",
-        "properties": {
-          "width": {
-            "type": "number",
-            "@mapping": "shopify:seans-store-takeshape:Image.width"
-          },
-          "id": {
-            "type": "number",
-            "@tag": "id",
-            "@mapping": "shopify:seans-store-takeshape:Image.id"
-          },
-          "altText": {
-            "type": "string",
-            "@mapping": "shopify:seans-store-takeshape:Image.altText"
-          },
-          "src": {
-            "type": "string",
-            "@tag": "imageUrl",
-            "@mapping": "shopify:seans-store-takeshape:Image.src"
-          }
-        }
-      },
-      "id": "shopifyImage",
-      "title": "Image"
-    },
-    "ProductInput": {
-      "name": "ProductInput",
-      "schema": {
-        "type": "object",
-        "properties": {
-          "vendor": {
-            "type": "string",
-            "@mapping": "shopify:seans-store-takeshape:ProductInput.vendor"
-          },
-          "description": {
-            "type": "string",
-            "@mapping": "shopify:seans-store-takeshape:ProductInput.description"
-          },
-          "descriptionHtml": {
-            "type": "string",
-            "@tag": "html",
-            "@mapping": "shopify:seans-store-takeshape:ProductInput.descriptionHtml"
-          },
-          "handle": {
-            "type": "string",
-            "@mapping": "shopify:seans-store-takeshape:ProductInput.handle"
-          },
-          "seo": {
-            "$ref": "#/shapes/SEO/schema",
-            "@mapping": "shopify:seans-store-takeshape:ProductInput.seo"
-          },
-          "title": {
-            "type": "string",
-            "@tag": "title",
-            "@mapping": "shopify:seans-store-takeshape:ProductInput.title"
-          },
-          "productType": {
-            "type": "string",
-            "@mapping": "shopify:seans-store-takeshape:ProductInput.productType"
-          },
-          "tags": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "@mapping": "shopify:seans-store-takeshape:ProductInput.tags"
-          }
-        },
-        "required": [
-          "title"
-        ]
-      },
-      "id": "productInput",
-      "title": "Product Input"
-    },
-    "ProductConnection": {
-      "name": "ProductConnection",
-      "schema": {
-        "type": "object",
-        "properties": {
-          "edges": {
-            "type": "array",
-            "items": {
-              "$ref": "#/shapes/ProductEdge/schema"
-            },
-            "@mapping": "shopify:seans-store-takeshape:ProductConnection.edges"
-          },
-          "pageInfo": {
-            "$ref": "#/shapes/PageInfo/schema",
-            "@mapping": "shopify:seans-store-takeshape:ProductInput.pageInfo"
-          }
-        },
-        "required": []
-      },
-      "id": "productConnection",
-      "title": "Product Connection"
-    },
-    "PageInfo": {
-      "name": "PageInfo",
-      "title": "PageInfo",
-      "id": "pageInfo",
-      "description": "Information about pagination in a connection.",
-      "schema": {
-        "type": "object",
-        "properties": {
-          "hasNextPage": {
-            "type": "boolean",
-            "@mapping": "shopify:seans-store-takeshape:PageInfo.hasNextPage",
-            "description": "Indicates if there are more pages to fetch."
-          },
-          "hasPreviousPage": {
-            "type": "boolean",
-            "@mapping": "shopify:seans-store-takeshape:PageInfo.hasPreviousPage",
-            "description": "Indicates if there are any pages prior to the current page."
-          }
-        },
-        "required": [
-          "hasNextPage",
-          "hasPreviousPage"
-        ]
-      }
-    },
-    "ProductEdge": {
-      "name": "ProductEdge",
-      "title": "ProductEdge",
-      "id": "productEdge",
-      "schema": {
-        "type": "object",
-        "properties": {
-          "cursor": {
-            "type": "string",
-            "@mapping": "shopify:seans-store-takeshape:ProductEdge.cursor",
-            "description": "A cursor for use in pagination."
-          },
-          "node": {
-            "$ref": "#/shapes/Product/schema",
-            "@mapping": "shopify:seans-store-takeshape:ProductEdge.node",
-            "description": "The item at the end of ProductEdge."
-          }
-        },
-        "required": [
-          "cursor",
-          "node"
-        ]
-      }
-    },
-    "ProductCreatePayload": {
-      "name": "ProductCreatePayload",
-      "schema": {
-        "type": "object",
-        "properties": {
-          "product": {
-            "$ref": "#/shapes/Product/schema",
-            "@mapping": "shopify:seans-store-takeshape:ProductCreatePayload.product"
-          }
-        }
-      },
-      "id": "shopifyProductCreatePayload",
-      "title": "Product Create Payload"
-    },
     "Tag": {
       "name": "Tag",
       "schema": {
@@ -493,7 +321,7 @@
         "properties": {
           "name": {
             "type": "string",
-            "@mapping": "shopify:seans-store-takeshape:Tag.nameId"
+            "@mapping": "takeshape:local:Tag.nameId"
           }
         },
         "required": [
@@ -505,6 +333,455 @@
       },
       "id": "tagContentTypeId",
       "title": "Tag"
+    },
+    "Shopify_Product": {
+      "name": "Shopify_Product",
+      "title": "Shopify_Product",
+      "id": "shopifyProduct",
+      "description": "Represents a product, including information about related collections and product variants.",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "availablePublicationCount": {
+            "type": "integer",
+            "@mapping": "shopify:seans-store-takeshape:Shopify_Product.availablePublicationCount",
+            "description": "The number of publications a resource is published to without feedback errors."
+          },
+          "bodyHtml": {
+            "type": "string",
+            "@mapping": "shopify:seans-store-takeshape:Shopify_Product.bodyHtml",
+            "@deprecationReason": "Use `descriptionHtml` instead",
+            "description": "The description of the product, complete with HTML formatting."
+          },
+          "createdAt": {
+            "description": "The date and time ([ISO 8601 format](http://en.wikipedia.org/wiki/ISO_8601)) when the product was created.",
+            "@tag": "Shopify_DateTime",
+            "@mapping": "shopify:seans-store-takeshape:Shopify_Product.createdAt"
+          },
+          "defaultCursor": {
+            "type": "string",
+            "@mapping": "shopify:seans-store-takeshape:Shopify_Product.defaultCursor",
+            "description": "A default cursor for use in pagination."
+          },
+          "description": {
+            "type": "string",
+            "@mapping": "shopify:seans-store-takeshape:Shopify_Product.description",
+            "@args": {
+              "type": "object",
+              "properties": {
+                "truncateAt": {
+                  "type": "integer",
+                  "description": "Truncates string after the given length."
+                }
+              }
+            },
+            "description": "A stripped description of the product, single line with HTML tags removed."
+          },
+          "descriptionHtml": {
+            "description": "The description of the product, complete with HTML formatting.",
+            "@tag": "Shopify_HTML",
+            "@mapping": "shopify:seans-store-takeshape:Shopify_Product.descriptionHtml"
+          },
+          "descriptionPlainSummary": {
+            "type": "string",
+            "@mapping": "shopify:seans-store-takeshape:Shopify_Product.descriptionPlainSummary",
+            "@deprecationReason": "Use `description` instead",
+            "description": "Stripped description of the product, single line with HTML tags removed.\nTruncated to 60 characters."
+          },
+          "giftCardTemplateSuffix": {
+            "type": "string",
+            "@mapping": "shopify:seans-store-takeshape:Shopify_Product.giftCardTemplateSuffix",
+            "description": "The theme template used when viewing the gift card in a store."
+          },
+          "handle": {
+            "type": "string",
+            "@mapping": "shopify:seans-store-takeshape:Shopify_Product.handle",
+            "description": "A unique human-friendly string of the product's title."
+          },
+          "hasOnlyDefaultVariant": {
+            "type": "boolean",
+            "@mapping": "shopify:seans-store-takeshape:Shopify_Product.hasOnlyDefaultVariant",
+            "description": "Whether the product has only a single variant with the default option and value."
+          },
+          "hasOutOfStockVariants": {
+            "type": "boolean",
+            "@mapping": "shopify:seans-store-takeshape:Shopify_Product.hasOutOfStockVariants",
+            "description": "Whether the product has out of stock variants."
+          },
+          "id": {
+            "type": "string",
+            "@tag": "id",
+            "@mapping": "shopify:seans-store-takeshape:Shopify_Product.id",
+            "description": "Globally unique identifier."
+          },
+          "inCollection": {
+            "type": "boolean",
+            "@mapping": "shopify:seans-store-takeshape:Shopify_Product.inCollection",
+            "@args": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "@tag": "id",
+                  "description": "The ID of the collection to check."
+                }
+              },
+              "required": [
+                "id"
+              ]
+            },
+            "description": "Whether the product is in a given collection."
+          },
+          "isGiftCard": {
+            "type": "boolean",
+            "@mapping": "shopify:seans-store-takeshape:Shopify_Product.isGiftCard",
+            "description": "Whether the product is a gift card."
+          },
+          "legacyResourceId": {
+            "description": "The ID of the corresponding resource in the REST Admin API.",
+            "@tag": "Shopify_UnsignedInt64",
+            "@mapping": "shopify:seans-store-takeshape:Shopify_Product.legacyResourceId"
+          },
+          "mediaCount": {
+            "type": "integer",
+            "@mapping": "shopify:seans-store-takeshape:Shopify_Product.mediaCount",
+            "description": "Total count of media belonging to a product."
+          },
+          "onlineStorePreviewUrl": {
+            "description": "The online store preview URL.",
+            "@tag": "Shopify_URL",
+            "@mapping": "shopify:seans-store-takeshape:Shopify_Product.onlineStorePreviewUrl"
+          },
+          "onlineStoreUrl": {
+            "description": "The online store URL for the product.\nA value of `null` indicates that the product is not published to the Online Store sales channel.",
+            "@tag": "Shopify_URL",
+            "@mapping": "shopify:seans-store-takeshape:Shopify_Product.onlineStoreUrl"
+          },
+          "productType": {
+            "type": "string",
+            "@mapping": "shopify:seans-store-takeshape:Shopify_Product.productType",
+            "description": "The product type specified by the merchant."
+          },
+          "publicationCount": {
+            "type": "integer",
+            "@mapping": "shopify:seans-store-takeshape:Shopify_Product.publicationCount",
+            "@args": {
+              "type": "object",
+              "properties": {
+                "onlyPublished": {
+                  "type": "boolean",
+                  "description": "Include only the resource's publications that are published. If false, then\nreturn all the resource's publications including future publications."
+                }
+              }
+            },
+            "description": "The number of publications a resource is published on."
+          },
+          "publishedAt": {
+            "description": "The date and time ([ISO 8601 format](http://en.wikipedia.org/wiki/ISO_8601))\nwhen the product was published to the Online Store.",
+            "@tag": "Shopify_DateTime",
+            "@mapping": "shopify:seans-store-takeshape:Shopify_Product.publishedAt"
+          },
+          "publishedOnChannel": {
+            "type": "boolean",
+            "@mapping": "shopify:seans-store-takeshape:Shopify_Product.publishedOnChannel",
+            "@deprecationReason": "Use `publishedOnPublication` instead",
+            "@args": {
+              "type": "object",
+              "properties": {
+                "channelId": {
+                  "type": "string",
+                  "@tag": "id",
+                  "description": "The ID of the channel to check."
+                }
+              },
+              "required": [
+                "channelId"
+              ]
+            },
+            "description": "Check to see whether the resource is published to a given channel."
+          },
+          "publishedOnCurrentChannel": {
+            "type": "boolean",
+            "@mapping": "shopify:seans-store-takeshape:Shopify_Product.publishedOnCurrentChannel",
+            "@deprecationReason": "Use `publishedOnCurrentPublication` instead",
+            "description": "Check to see whether the resource is published to the calling app's channel."
+          },
+          "publishedOnCurrentPublication": {
+            "type": "boolean",
+            "@mapping": "shopify:seans-store-takeshape:Shopify_Product.publishedOnCurrentPublication",
+            "description": "Check to see whether the resource is published to the calling app's publication."
+          },
+          "publishedOnPublication": {
+            "type": "boolean",
+            "@mapping": "shopify:seans-store-takeshape:Shopify_Product.publishedOnPublication",
+            "@args": {
+              "type": "object",
+              "properties": {
+                "publicationId": {
+                  "type": "string",
+                  "@tag": "id",
+                  "description": "The ID of the publication to check."
+                }
+              },
+              "required": [
+                "publicationId"
+              ]
+            },
+            "description": "Check to see whether the resource is published to a given publication."
+          },
+          "storefrontId": {
+            "description": "The storefront ID of the product.",
+            "@tag": "Shopify_StorefrontID",
+            "@mapping": "shopify:seans-store-takeshape:Shopify_Product.storefrontId"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "@mapping": "shopify:seans-store-takeshape:Shopify_Product.tags",
+            "description": "A comma separated list of tags that have been added to the product."
+          },
+          "templateSuffix": {
+            "type": "string",
+            "@mapping": "shopify:seans-store-takeshape:Shopify_Product.templateSuffix",
+            "description": "The theme template used when viewing the product in a store."
+          },
+          "title": {
+            "type": "string",
+            "@mapping": "shopify:seans-store-takeshape:Shopify_Product.title",
+            "description": "The title of the product."
+          },
+          "totalInventory": {
+            "type": "integer",
+            "@mapping": "shopify:seans-store-takeshape:Shopify_Product.totalInventory",
+            "description": "The quantity of inventory in stock."
+          },
+          "totalVariants": {
+            "type": "integer",
+            "@mapping": "shopify:seans-store-takeshape:Shopify_Product.totalVariants",
+            "description": "The number of variants that are associated with the product."
+          },
+          "tracksInventory": {
+            "type": "boolean",
+            "@mapping": "shopify:seans-store-takeshape:Shopify_Product.tracksInventory",
+            "description": "Whether inventory tracking has been enabled for the product."
+          },
+          "updatedAt": {
+            "description": "The date and time ([ISO 8601 format](http://en.wikipedia.org/wiki/ISO_8601)) when the product was last modified.",
+            "@tag": "Shopify_DateTime",
+            "@mapping": "shopify:seans-store-takeshape:Shopify_Product.updatedAt"
+          },
+          "vendor": {
+            "type": "string",
+            "@mapping": "shopify:seans-store-takeshape:Shopify_Product.vendor",
+            "description": "The name of the product's vendor."
+          }
+        },
+        "required": [
+          "availablePublicationCount",
+          "createdAt",
+          "defaultCursor",
+          "description",
+          "descriptionHtml",
+          "descriptionPlainSummary",
+          "handle",
+          "id",
+          "inCollection",
+          "isGiftCard",
+          "legacyResourceId",
+          "mediaCount",
+          "productType",
+          "storefrontId",
+          "tags",
+          "title",
+          "totalInventory",
+          "totalVariants",
+          "tracksInventory",
+          "updatedAt",
+          "vendor"
+        ]
+      }
+    },
+    "Shopify_ProductCreatePayload": {
+      "name": "Shopify_ProductCreatePayload",
+      "title": "Shopify_ProductCreatePayload",
+      "id": "shopifyProductCreatePayload",
+      "description": "Return type for `productCreate` mutation.",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "product": {
+            "$ref": "#/shapes/Shopify_Product/schema",
+            "description": "The product object."
+          }
+        }
+      }
+    },
+    "Shopify_ProductConnection": {
+      "name": "Shopify_ProductConnection",
+      "title": "Shopify_ProductConnection",
+      "id": "shopifyProductConnection",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "edges": {
+            "type": "array",
+            "items": {
+              "$ref": "#/shapes/Shopify_ProductEdge/schema"
+            },
+            "@mapping": "shopify:seans-store-takeshape:Shopify_ProductConnection.edges",
+            "description": "A list of edges."
+          }
+        },
+        "required": [
+          "edges"
+        ]
+      }
+    },
+    "Shopify_ProductEdge": {
+      "name": "Shopify_ProductEdge",
+      "title": "Shopify_ProductEdge",
+      "id": "shopifyProductEdge",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "cursor": {
+            "type": "string",
+            "@mapping": "shopify:seans-store-takeshape:Shopify_ProductEdge.cursor",
+            "description": "A cursor for use in pagination."
+          },
+          "node": {
+            "$ref": "#/shapes/Shopify_Product/schema",
+            "description": "The item at the end of ProductEdge."
+          }
+        },
+        "required": [
+          "cursor",
+          "node"
+        ]
+      }
+    },
+    "Shopify_ProductInput": {
+      "name": "Shopify_ProductInput",
+      "title": "Shopify_ProductInput",
+      "id": "shopifyProductInput",
+      "description": "Specifies the input fields required to create a product.",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "descriptionHtml": {
+            "type": "string",
+            "@mapping": "shopify:seans-store-takeshape:Shopify_ProductInput.descriptionHtml",
+            "description": "The description of the product, complete with HTML formatting."
+          },
+          "handle": {
+            "type": "string",
+            "@mapping": "shopify:seans-store-takeshape:Shopify_ProductInput.handle",
+            "description": "A unique human-friendly string for the product. Automatically generated from the product's title."
+          },
+          "redirectNewHandle": {
+            "type": "boolean",
+            "@mapping": "shopify:seans-store-takeshape:Shopify_ProductInput.redirectNewHandle",
+            "description": "Whether a redirect is required after a new handle has been provided.\nIf true, then the old handle is redirected to the new one automatically."
+          },
+          "productType": {
+            "type": "string",
+            "@mapping": "shopify:seans-store-takeshape:Shopify_ProductInput.productType",
+            "description": "The product type specified by the merchant."
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "@mapping": "shopify:seans-store-takeshape:Shopify_ProductInput.tags",
+            "description": "A comma separated list tags that have been added to the product."
+          },
+          "templateSuffix": {
+            "type": "string",
+            "@mapping": "shopify:seans-store-takeshape:Shopify_ProductInput.templateSuffix",
+            "description": "The theme template used when viewing the product in a store."
+          },
+          "giftCard": {
+            "type": "boolean",
+            "@mapping": "shopify:seans-store-takeshape:Shopify_ProductInput.giftCard",
+            "description": "Whether the product is a gift card."
+          },
+          "giftCardTemplateSuffix": {
+            "type": "string",
+            "@mapping": "shopify:seans-store-takeshape:Shopify_ProductInput.giftCardTemplateSuffix",
+            "description": "The theme template used when viewing the gift card in a store."
+          },
+          "title": {
+            "type": "string",
+            "@mapping": "shopify:seans-store-takeshape:Shopify_ProductInput.title",
+            "description": "The title of the product."
+          },
+          "vendor": {
+            "type": "string",
+            "@mapping": "shopify:seans-store-takeshape:Shopify_ProductInput.vendor",
+            "description": "The name of the product's vendor."
+          },
+          "bodyHtml": {
+            "type": "string",
+            "@mapping": "shopify:seans-store-takeshape:Shopify_ProductInput.bodyHtml",
+            "description": "A description of the product. Supports HTML formatting. This argument is deprecated: Use `descriptionHtml` instead."
+          },
+          "collectionsToJoin": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "@tag": "id"
+            },
+            "@mapping": "shopify:seans-store-takeshape:Shopify_ProductInput.collectionsToJoin",
+            "description": "The IDs of the collections that this product will be added to."
+          },
+          "collectionsToLeave": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "@tag": "id"
+            },
+            "@mapping": "shopify:seans-store-takeshape:Shopify_ProductInput.collectionsToLeave",
+            "description": "The IDs of collections that will no longer include the product."
+          },
+          "id": {
+            "type": "string",
+            "@tag": "id",
+            "@mapping": "shopify:seans-store-takeshape:Shopify_ProductInput.id",
+            "description": "Specifies the product to update in productUpdate or creates a new product if absent in productCreate."
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "@mapping": "shopify:seans-store-takeshape:Shopify_ProductInput.options",
+            "description": "List of custom product options (maximum of 3 per product)."
+          },
+          "publishDate": {
+            "description": "Only products with an active status can be published. This argument is deprecated: Use `PublishablePublish` instead.",
+            "@tag": "Shopify_DateTime",
+            "@mapping": "shopify:seans-store-takeshape:Shopify_ProductInput.publishDate"
+          },
+          "publishOn": {
+            "description": "Only products with an active status can be published. This argument is deprecated: Use `PublishablePublish` instead.",
+            "@tag": "Shopify_DateTime",
+            "@mapping": "shopify:seans-store-takeshape:Shopify_ProductInput.publishOn"
+          },
+          "published": {
+            "type": "boolean",
+            "@mapping": "shopify:seans-store-takeshape:Shopify_ProductInput.published",
+            "description": "Only products with an active status can be published. This argument is deprecated: Use `PublishablePublish` instead."
+          },
+          "publishedAt": {
+            "description": "Only products with an active status can be published. This argument is deprecated: Use `PublishablePublish` instead.",
+            "@tag": "Shopify_DateTime",
+            "@mapping": "shopify:seans-store-takeshape:Shopify_ProductInput.publishedAt"
+          }
+        }
+      }
     }
   },
   "projectId": "2dfe9bff-a0be-4309-ab53-acbe60bdb44b",
