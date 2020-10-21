@@ -20,7 +20,9 @@
       "resolver": {
         "name": "graphql:query",
         "service": "shopify:seans-store-takeshape",
-        "fieldName": "product"
+        "options": {
+          "fieldName": "product"
+        }
       },
       "args": {
         "type": "object",
@@ -136,7 +138,9 @@
       "resolver": {
         "name": "graphql:query",
         "service": "shopify:seans-store-takeshape",
-        "fieldName": "products"
+        "options": {
+          "fieldName": "products"
+        }
       },
       "shape": "Shopify_ProductConnection"
     }
@@ -270,6 +274,23 @@
       "schema": {
         "type": "object",
         "properties": {
+          "rating": {
+            "type": "integer",
+            "@mapping": "takeshape:local:Post.ratingId"
+          },
+          "shopifyProduct": {
+            "$ref": "#/shapes/Shopify_Product/schema",
+            "@resolver": {
+              "name": "graphql:query",
+              "argsMapping": {
+                "id": [["jsonPath", {"path": "$.productId"}]]
+              },
+              "service": "shopify:seans-store-takeshape",
+              "options": {
+                "fieldName": "product"
+              }
+            }
+          },
           "rating": {
             "type": "integer",
             "@mapping": "takeshape:local:Post.ratingId"
