@@ -283,7 +283,7 @@
             "@resolver": {
               "name": "graphql:query",
               "argsMapping": {
-                "id": [["jsonPath", {"path": "$.productId"}]]
+                "id": [["jsonPath", {"path": "$.source.productId"}]]
               },
               "service": "shopify:seans-store-takeshape",
               "options": {
