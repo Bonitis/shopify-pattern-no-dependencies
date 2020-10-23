@@ -812,6 +812,23 @@
   "forms": {
     "Post": {
       "default": {
+        "properties": {
+          "title": {
+            "widget": "singleLineText"
+          },
+          "body": {
+            "widget": "singleLineText"
+          },
+          "rating": {
+            "widget": "number"
+          },
+          "productId": {
+            "widget": "singleLineText"
+          },
+          "tags": {
+            "widget": "relationship"
+          }
+        },
         "order": [
           "title",
           "body",
@@ -822,6 +839,11 @@
     },
     "Tag": {
       "default": {
+        "properties": {
+          "name": {
+            "widget": "singleLineText"
+          }
+        },
         "order": [
           "name"
         ]
