@@ -276,11 +276,8 @@
       "schema": {
         "type": "object",
         "properties": {
-          "rating": {
-            "type": "integer",
-            "@mapping": "takeshape:local:Post.ratingId"
-          },
           "shopifyProduct": {
+            "title": "Shopify Product",
             "$ref": "#/shapes/Shopify_Product/schema",
             "@resolver": {
               "name": "graphql:query",
@@ -294,25 +291,30 @@
             }
           },
           "rating": {
+            "title": "Rating",
             "type": "integer",
             "@mapping": "takeshape:local:Post.ratingId"
           },
           "productId": {
+            "title": "Product ID",
             "type": "string",
             "@tag": "id",
             "@mapping": "takeshape:local:Post.productId"
           },
           "title": {
+            "title": "Title",
             "type": "string",
             "@l10n": true,
             "@mapping": "takeshape:local:Post.titleId"
           },
           "body": {
+            "title": "Body",
             "type": "string",
             "@l10n": true,
             "@mapping": "takeshape:local:Post.bodyId"
           },
           "tags": {
+            "title": "Tags",
             "@mapping": "takeshape:local:Post.tagsId",
             "type": "array",
             "items": {
@@ -343,6 +345,7 @@
         "type": "object",
         "properties": {
           "name": {
+            "title": "Name",
             "type": "string",
             "@mapping": "takeshape:local:Tag.nameId"
           }
