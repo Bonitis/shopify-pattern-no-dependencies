@@ -279,7 +279,6 @@
           "shopifyProduct": {
             "title": "Shopify Product",
             "$ref": "#/shapes/Shopify_Product/schema",
-            "@mapping": "takeshape:local:Post.shopifyProductId",
             "@resolver": {
               "name": "graphql:query",
               "argsMapping": {
