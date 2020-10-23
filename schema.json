@@ -252,7 +252,9 @@
       "resolver": {
         "name": "graphql:mutation",
         "service": "shopify:seans-store-takeshape",
-        "fieldName": "productCreate"
+        "options": {
+          "fieldName": "productCreate"
+        }
       },
       "args": {
         "type": "object",
